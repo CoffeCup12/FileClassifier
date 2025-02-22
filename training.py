@@ -1,4 +1,8 @@
+import warnings
 from pypdf import PdfReader
+
+# Suppress specific warnings related to PyPDF
+warnings.filterwarnings("ignore", message="Ignoring wrong pointing object")
 
 def extract_text_from_pdf(pdf_path):
     text = ""
@@ -8,6 +12,6 @@ def extract_text_from_pdf(pdf_path):
             text += page.extract_text() or ""
     return text
 
-path = input("enter your path")
-extract_text_from_pdf(path)
-
+path = input("Enter your path: ")
+text = extract_text_from_pdf(path)
+print(text)  # You can also return or save the text as needed
