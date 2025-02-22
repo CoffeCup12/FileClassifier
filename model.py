@@ -7,6 +7,10 @@ import re
 class ProcessinglNetwork(nn.Module):
     def __init__(self, inputSize, hiddenSize, numLayers):
         super(ProcessinglNetwork, self).__init__()
+
+        self.hiddenSize = hiddenSize
+        self.numLayers = numLayers
+
         self.gru = nn.GRU(inputSize, hiddenSize, numLayers, batch_first=True, bidirectional=True)
         self.attention = nn.Sequential(
             nn.Linear(hiddenSize*2, 1),
@@ -38,11 +42,20 @@ class HANModel(nn.Module):
         processedSentences = []
 
         for sentence in sentences:
+
             words = sentence.split()
+            wordsToIndex = {}
+
+            for i in range(len(words)):
+                wordsToIndex.update({words[i]: i})
+
             embedding = nn.Embedding(vocab_size = len(words), embedding_dim = 10)
-            processedSentence = self.sentenceLevel(self.wordLevel.forward(embedding))
+            looksUpTensor = torch.tensor([wordsToIndex["geeks"]], dtype=torch.long)
+            embeds = embedding(looksUpTensor)
+
+            processedSentence = self.sentenceLevel.foward(self.wordLevel.forward(embeds))
             processedSentences.append(processedSentence)
-            
+
         self.documentClassifcation(torch.tensor(processedSentences))
 
         
@@ -50,8 +63,6 @@ class HANModel(nn.Module):
         sentenceSeparators = "(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s"
         return re.split(sentenceSeparators, document)
     
-
-
 
 
 
