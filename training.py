@@ -1,9 +1,15 @@
-from pypdf import PdfReader
+import pdfplumber
+import os
 
-def extract_text_from_pdf(pdf_path):
+pdf_path = ""
+if os.path.exists(pdf_path):
+    print("File exists!")
+else:
+    print("File not found!")
+    
+with pdfplumber.open(pdf_path) as pdf:
     text = ""
-    with open(pdf_path, 'rb') as file:
-        reader = PdfReader(file)
-        for page in reader.pages:
-            text += page.extract_text() or ""
-    return text
+    for page in pdf.pages:
+        text += page.extract_text()  # Extract only the text, ignoring other content
+
+print(text)  # Print or process the text
