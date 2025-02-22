@@ -46,8 +46,7 @@ class HANModel(nn.Module):
             wordsToIndex = self.separateWords(sentence)
 
             embedding = nn.Embedding(vocab_size = len(wordsToIndex), embedding_dim = 10)
-            looksUpTensor = torch.tensor([wordsToIndex["geeks"]], dtype=torch.long)
-            embeds = embedding(looksUpTensor)
+            embeds = embedding(torch.LongTensor(wordsToIndex))
 
             processedSentence = self.sentenceLevel.foward(self.wordLevel.forward(embeds))
             processedSentences.append(processedSentence)
@@ -61,12 +60,21 @@ class HANModel(nn.Module):
     
     def separateWords(self, sentence):
         words = sentence.split()
-        wordsToIndex = {}
+        vocab = {}
 
-        for i in range(len(words)):
-            wordsToIndex.update({words[i]: i})
+        for i in words:
+            if i in vocab:
+                vocab[i] += 1
+            else:
+                vocab[i] = 1
+
+        vocab = sorted(vocab, key=vocab.get, reverse=True)
         
-        return wordsToIndex
+        # create a word to index dictionary from our Vocab dictionary
+        word2idx = {word: ind for ind, word in enumerate(vocab)} 
+        
+        return [word2idx[word] for word in words]
+    
 
     
 
