@@ -2,36 +2,19 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F 
 import torch.optim as optim
-
-
-class WordLevelNetwork(nn.Module):
-    def __init__(self, inputSize, hiddenSize, numLayers, vocabSize):
-        super(WordLevelNetwork, self).__init__()
-        self.embedding = nn.Embedding(vocabSize, inputSize)
-        self.gru = nn.GRU(inputSize, hiddenSize, numLayers, batch_first=True, bidirectional=True)
-        self.attention = nn.Sequential(
-            nn.Linear(hiddenSize*2, 1),
-            nn.Tanh()
-        )
     
-    def forward(self, inputText):
-        embedded = self.embedding(inputText)
-        output, _ = self.gru(embedded)
-        attentionWeights = F.softmax(self.attention(output), dim=1)
-        contextVector = torch.sum(attentionWeights * output, dim=1)
-        return contextVector
-    
-class SentenceLevelNetwork(nn.Module):
+class ProcessinglNetwork(nn.Module):
     def __init__(self, inputSize, hiddenSize, numLayers):
-        super(SentenceLevelNetwork, self).__init__()
+        super(ProcessinglNetwork, self).__init__()
         self.gru = nn.GRU(inputSize, hiddenSize, numLayers, batch_first=True, bidirectional=True)
         self.attention = nn.Sequential(
             nn.Linear(hiddenSize*2, 1),
             nn.Tanh()
         )
     
-    def forward(self, inputText):
-        output, _ = self.gru(inputText)
+    def forward(self, inputSentence):
+        #input sentence is the processed sentence from the word level network
+        output, _ = self.gru(inputSentence)
         attentionWeights = F.softmax(self.attention(output), dim=1)
         contextVector = torch.sum(attentionWeights * output, dim=1)
         return contextVector
@@ -58,6 +41,7 @@ class HANModel(nn.Module):
     def forward(self, inputText):
         #Change this later
         embedding = nn.Embedding(vocab_size = 0, embedding_dim=0)
+        WordLevelNetwork.forward(embedding)
         
 
 
