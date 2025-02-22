@@ -43,13 +43,9 @@ class HANModel(nn.Module):
 
         for sentence in sentences:
 
-            words = sentence.split()
-            wordsToIndex = {}
+            wordsToIndex = self.separateWords(sentence)
 
-            for i in range(len(words)):
-                wordsToIndex.update({words[i]: i})
-
-            embedding = nn.Embedding(vocab_size = len(words), embedding_dim = 10)
+            embedding = nn.Embedding(vocab_size = len(wordsToIndex), embedding_dim = 10)
             looksUpTensor = torch.tensor([wordsToIndex["geeks"]], dtype=torch.long)
             embeds = embedding(looksUpTensor)
 
@@ -62,6 +58,16 @@ class HANModel(nn.Module):
     def separateSentences(self, document):
         sentenceSeparators = "(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s"
         return re.split(sentenceSeparators, document)
+    
+    def separateWords(self, sentence):
+        words = sentence.split()
+        wordsToIndex = {}
+
+        for i in range(len(words)):
+            wordsToIndex.update({words[i]: i})
+        
+        return wordsToIndex
+
     
 
 
