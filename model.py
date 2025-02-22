@@ -4,9 +4,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 import re
     
-class ProcessinglNetwork(nn.Module):
+class ProcessingNetwork(nn.Module):
     def __init__(self, inputSize, hiddenSize, numLayers):
-        super(ProcessinglNetwork, self).__init__()
+        super(ProcessingNetwork, self).__init__()
 
         self.hiddenSize = hiddenSize
         self.numLayers = numLayers
@@ -25,14 +25,16 @@ class ProcessinglNetwork(nn.Module):
 
 class HANModel(nn.Module):
     
-    def __init__(self, wordLevel, sentenceLevel, numCategories):
+    def __init__(self, wordHiddenSize, sentenceHiddenSize, numLayers, embiddingDim, numCategories):
         super(HANModel, self).__init__()
-        self.wordLevel = wordLevel
-        self.sentenceLevel = sentenceLevel
+        self.embeddingDim = embiddingDim
+
+        self.wordLevel = ProcessingNetwork(embiddingDim, wordHiddenSize, numLayers)
+        self.sentenceLevel = ProcessingNetwork(2 * wordHiddenSize, sentenceHiddenSize, numLayers)
 
         self.documentClassifcation = nn.Sequential(
-            nn.Linear(2 * sentenceLevel.hiddenSize, numCategories),
-            nn.Softmax()
+            nn.Linear(2 * self.sentenceLevel.hiddenSize, numCategories),
+            nn.Softmax(dim=1)
         )
 
 
@@ -44,14 +46,16 @@ class HANModel(nn.Module):
         for sentence in sentences:
 
             wordsToIndex = self.separateWords(sentence)
+            embedding = nn.Embedding(num_embeddings = len(wordsToIndex), embedding_dim = self.embeddingDim)
+            embeds = embedding(torch.LongTensor(wordsToIndex)).unsqueeze(0)
 
-            embedding = nn.Embedding(vocab_size = len(wordsToIndex), embedding_dim = 10)
-            embeds = embedding(torch.LongTensor(wordsToIndex))
-
-            processedSentence = self.sentenceLevel.foward(self.wordLevel.forward(embeds))
+            processedSentence = self.wordLevel.forward(embeds)
             processedSentences.append(processedSentence)
 
-        return self.documentClassifcation(torch.tensor(processedSentences))
+        sentenceTensor = torch.cat(processedSentences, dim=0).unsqueeze(0)
+        documentVector = self.sentenceLevel.forward(sentenceTensor)
+
+        return self.documentClassifcation(documentVector)
 
         
     def separateSentences(self, document):
@@ -71,9 +75,9 @@ class HANModel(nn.Module):
         vocab = sorted(vocab, key=vocab.get, reverse=True)
         
         # create a word to index dictionary from our Vocab dictionary
-        word2idx = {word: ind for ind, word in enumerate(vocab)} 
+        wordToindex = {word: ind for ind, word in enumerate(vocab)} 
         
-        return [word2idx[word] for word in words]
+        return [wordToindex[word] for word in words]
     
 
     
