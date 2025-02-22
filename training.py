@@ -25,10 +25,25 @@ def generateVocab(text):
             vocab[word] = i
             i +=1 
     
-text = extract_text_from_pdf("example.pdf")
+path = input("Enter the path to the PDF file: ")
+text = extract_text_from_pdf(path)
 generateVocab(text)
 
-HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embiddingDim=20, vocab=vocab, numCategories=5)
+
+
+HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embeddingDim=20, vocab=vocab, numCategories=2)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = optim.Adam(HAN.parameters(), lr=0.001)
+
+documents = [("This is a document", 0), ("This is another document", 1)]
+
+for document, label in documents:
+    optimizer.zero_grad()
+    label = torch.tensor([label])
+
+    output = HAN.forward(document)
+
+    loss = criterion(output, label)
+    loss.backward()
+    optimizer.step()
