@@ -5,11 +5,18 @@ import torch.optim as optim
 
 class HANModel(nn.Module):
     
-    def __init__(self, wordEcoderVariables):
+    def __init__(self, wordLevelVariables, sentenceLevelVariables):
         super(HANModel, self).__init__()
-        self.wordEncoder = nn.GRU(wordEcoderVariables['inputSize'], wordEcoderVariables['hiddenSize'], wordEcoderVariables['numLayers'], batch_first=True, bidirectional=True)  
+        self.embedding = nn.Embedding(wordLevelVariables['vocabSize'], wordLevelVariables['input'])
+        self.wordEncoder = nn.GRU(wordLevelVariables['inputSize'], wordLevelVariables['hiddenSize'], wordLevelVariables['numLayers'], batch_first=True, bidirectional=True)  
         self.wordAttention = nn.Sequential(
-            nn.Linear(wordEcoderVariables['hiddenSize']*2, 1),
+            nn.Linear(wordLevelVariables['hiddenSize']*2, 1),
+            nn.Tanh()
+        )
+
+        self.sentenceEncoder = nn.GRU(sentenceLevelVariables['inputSize'], sentenceLevelVariables['hiddenSize'], sentenceLevelVariables['numLayers'], batch_first=True, bidirectional=True)
+        self.sentenceAttention = nn.Sequential(
+            nn.Linear(sentenceLevelVariables['hiddenSize']*2, 1),
             nn.Tanh()
         )
 
