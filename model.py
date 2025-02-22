@@ -27,13 +27,7 @@ class HANModel(nn.Module):
         self.sentenceLevel = sentenceLevel
 
         self.documentClassifcation = nn.Sequential(
-            nn.Linear(2 * sentenceLevel.hiddenSize, 45),
-            nn.ReLU(),
-            nn.Linear(45, 45),
-            nn.ReLU(),
-            nn.Linear(45, 30),
-            nn.ReLU(),
-            nn.Linear(30, numCategories),
+            nn.Linear(2 * sentenceLevel.hiddenSize, numCategories),
             nn.Softmax()
         )
 
@@ -41,7 +35,7 @@ class HANModel(nn.Module):
     def forward(self, inputText):
         #Change this later
         embedding = nn.Embedding(vocab_size = 0, embedding_dim=0)
-        WordLevelNetwork.forward(embedding)
+        self.wordLevel.forward(embedding)
         
 
 
