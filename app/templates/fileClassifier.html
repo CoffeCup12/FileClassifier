@@ -1,0 +1,33 @@
+{% extends "base.html"%}
+
+{%block body %}
+<body>
+    <div>
+        <div class="row justify-content-center">
+            <div class="col-xl-6" >
+                <div class="text-center">
+                    <br>
+                    {% if title %}
+                    <h1>{{ title }}</h1>
+                    {% else %}
+                    <h1>Empty Title</h1>
+                    {% endif%}
+                    <br>
+                    <p>Helps you organize your files using HAN</p>
+                    <form action="{{ url_for("fileClassifier")}}" method="post">
+                        <label for="path">Enter your path here: </label>
+                        <input class="form-control form-control-lg" type="text" id="path" name="path">
+                        <button class="btn btn-primary btn-lg" id="submitButton" type="submit">Submit</button>
+                    <br>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer bg-light">
+        <div class="col-lg-6 h-100 text-center text-lg-start my-auto">
+            <p class="text-muted small mb-4 mb-lg-0">&copy; Your Website 2023. All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+{% endblock %}
