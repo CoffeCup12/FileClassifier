@@ -1,6 +1,9 @@
 import warnings
 from pypdf import PdfReader
 import model
+import torch.optim as optim
+import torch
+import re
 
 def extract_text_from_pdf(pdf_path):
     # Suppress specific warnings related to PyPDF
@@ -12,13 +15,20 @@ def extract_text_from_pdf(pdf_path):
         for page in reader.pages:
             text += page.extract_text() or ""
     return text
+    
+vocab = {"<PAD>": 0, "<UNK>": 1}
+def generateVocab(text):
+    words = text.lower().split()
+    i = 2
+    for word in words:
+        if word not in vocab:
+            vocab[word] = i
+            i +=1 
+    
+text = extract_text_from_pdf("example.pdf")
+generateVocab(text)
 
+HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embiddingDim=20, vocab=vocab, numCategories=5)
 
-path = input("Enter your path: ")
-text = extract_text_from_pdf(path)
-
-HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embiddingDim=20, numCategories=5)
-
-output = HAN.forward(text)
-
-print(output)
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = optim.Adam(HAN.parameters(), lr=0.001)

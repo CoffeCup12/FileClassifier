@@ -1,7 +1,6 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F 
-import torch.optim as optim
 import re
     
 class ProcessingNetwork(nn.Module):
@@ -25,12 +24,15 @@ class ProcessingNetwork(nn.Module):
 
 class HANModel(nn.Module):
     
-    def __init__(self, wordHiddenSize, sentenceHiddenSize, numLayers, embiddingDim, numCategories):
+    def __init__(self, wordHiddenSize, sentenceHiddenSize, numLayers, vocab, embeddingDim, numCategories):
         super(HANModel, self).__init__()
-        self.embeddingDim = embiddingDim
+        self.embeddingDim = embeddingDim
+        self.vocab = vocab
 
-        self.wordLevel = ProcessingNetwork(embiddingDim, wordHiddenSize, numLayers)
+        self.wordLevel = ProcessingNetwork(embeddingDim, wordHiddenSize, numLayers)
         self.sentenceLevel = ProcessingNetwork(2 * wordHiddenSize, sentenceHiddenSize, numLayers)
+
+        self.embedding = nn.Embedding(len(vocab), embeddingDim)
 
         self.documentClassifcation = nn.Sequential(
             nn.Linear(2 * self.sentenceLevel.hiddenSize, numCategories),
@@ -46,8 +48,7 @@ class HANModel(nn.Module):
         for sentence in sentences:
 
             wordsToIndex = self.separateWords(sentence)
-            embedding = nn.Embedding(num_embeddings = len(wordsToIndex), embedding_dim = self.embeddingDim)
-            embeds = embedding(torch.LongTensor(wordsToIndex)).unsqueeze(0)
+            embeds = self.embedding(torch.LongTensor(wordsToIndex)).unsqueeze(0)
 
             processedSentence = self.wordLevel.forward(embeds)
             processedSentences.append(processedSentence)
@@ -63,22 +64,8 @@ class HANModel(nn.Module):
         return re.split(sentenceSeparators, document)
     
     def separateWords(self, sentence):
-        words = sentence.split()
-        vocab = {}
-
-        for i in words:
-            if i in vocab:
-                vocab[i] += 1
-            else:
-                vocab[i] = 1
-
-        vocab = sorted(vocab, key=vocab.get, reverse=True)
-        
-        # create a word to index dictionary from our Vocab dictionary
-        wordToindex = {word: ind for ind, word in enumerate(vocab)} 
-        
-        return [wordToindex[word] for word in words]
-    
+        words = sentence.lower().split()
+        return [self.vocab.get(word, self.vocab['<UNK>']) for word in words]  # Handle unknown words
 
     
 
