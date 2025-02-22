@@ -23,29 +23,15 @@ class HANModel(nn.Module):
     
     def __init__(self, wordLevel, sentenceLevel, numCategories):
         super(HANModel, self).__init__()
-        self.wordLevel = wordLevel
-        self.sentenceLevel = sentenceLevel
-
-        self.documentClassifcation = nn.Sequential(
-            nn.Linear(2 * sentenceLevel.hiddenSize, 45),
-            nn.ReLU(),
-            nn.Linear(45, 45),
-            nn.ReLU(),
-            nn.Linear(45, 30),
-            nn.ReLU(),
-            nn.Linear(30, numCategories),
-            nn.Softmax()
+        self.embedding = nn.Embedding(wordLevelVariables['vocabSize'], wordLevelVariables['input'])
+        self.wordEncoder = nn.GRU(wordLevelVariables['inputSize'], wordLevelVariables['hiddenSize'], wordLevelVariables['numLayers'], batch_first=True, bidirectional=True)  
+        self.wordAttention = nn.Sequential(
+            nn.Linear(wordLevelVariables['hiddenSize']*2, 1),
+            nn.Tanh()
         )
 
-
-    def forward(self, inputText):
-        #Change this later
-        embedding = nn.Embedding(vocab_size = 0, embedding_dim=0)
-        WordLevelNetwork.forward(embedding)
-        
-
-
-
-
-
-    
+        self.sentenceEncoder = nn.GRU(sentenceLevelVariables['inputSize'], sentenceLevelVariables['hiddenSize'], sentenceLevelVariables['numLayers'], batch_first=True, bidirectional=True)
+        self.sentenceAttention = nn.Sequential(
+            nn.Linear(sentenceLevelVariables['hiddenSize']*2, 1),
+            nn.Tanh()
+        )
