@@ -1,23 +1,14 @@
 {% extends "base.html"%}
 
-{%block content %}
-<head>
-    {% if title %}
-    <title>{{ title }}</title>
-    {% else %}
-    <title>Empty Title</title>
-    {% endif%}
-</head>
-<body>
+{%block body %}
     {% if title %}
     <h1>{{ title }}</h1>
     {% else %}
     <h1>Empty Title</h1>
     {% endif%}
-    <p>Helps you organize your files using HAN</p>
+    <p style="background-image: url('static/img/testBackground.jpg');">Helps you organize your files using HAN</p>
     <form action="{{ url_for("test")}}" method="post">
         <label for="path">Enter your path here: </label>
-        <input type="text" id="path" name="path">
-        <button type="submit">Submit</button>
-</body>
+        <input class="form-control form-control-lg" type="text" id="path" name="path">
+        <button class="btn btn-primary btn-lg disabled" id="submitButton" type="submit">Submit</button>
 {% endblock %}

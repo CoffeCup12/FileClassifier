@@ -1,14 +1,102 @@
-{% extends "base.html"%}
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.bookshelf {
+  background: #3d2b1c;
+  width: 600px;
+  height: 500px;
+  position: relative;
+  border-radius: 5px;
+  box-shadow: 10px 10px 30px rgba(0,0,0,0.3);
+}
 
-{%block content %}
-    <head>
-        {% if title %}
-        <title>{{ title }}</title>
-        {% else %}
-        <title>Empty Title</title>
-        {% endif%}
-    </head>
-    <body>
-        <h1>Hi, {{ user.username }}!</h1>
-    </body>
-{% endblock %}
+.book {
+  position: absolute;
+  background: #8b4513;
+  border: 1px solid #654321;
+}
+
+.vertical {
+  width: 40px;
+  height: 180px;
+}
+
+.horizontal {
+  width: 100px;
+  height: 40px;
+}
+
+.ladder {
+  position: absolute;
+  right: 20px;
+  background: #b5a642;
+  width: 30px;
+  height: 300px;
+}
+
+.desk {
+  position: absolute;
+  bottom: 0;
+  left: 100px;
+  background: #5a3d2b;
+  width: 200px;
+  height: 80px;
+}
+
+.rug {
+  position: absolute;
+  bottom: -50px;
+  left: 50px;
+  width: 300px;
+  height: 100px;
+  background: linear-gradient(45deg, #8b0000, #000080);
+  opacity: 0.7;
+}
+
+/* Additional decorative elements */
+.cat {
+  position: absolute;
+  bottom: 120px;
+  left: 200px;
+  width: 50px;
+  height: 25px;
+  background: #000;
+  border-radius: 10px;
+}
+
+.lamp {
+  position: absolute;
+  top: 50px;
+  left: 150px;
+  width: 30px;
+  height: 50px;
+  background: #228b22;
+}
+
+</style>
+</head>
+<body>
+
+<div class="bookshelf">
+  <!-- Books -->
+  <div class="book vertical" style="left: 20px; top: 30px; background: #654321"></div>
+  <div class="book vertical" style="left: 70px; top: 30px; background: #4b0082"></div>
+  <div class="book horizontal" style="left: 130px; top: 50px; background: #8b0000"></div>
+  <div class="book vertical" style="left: 250px; top: 30px; background: #006400"></div>
+  
+  <!-- Ladder -->
+  <div class="ladder"></div>
+  
+  <!-- Desk -->
+  <div class="desk">
+    <div class="rug"></div>
+  </div>
+  
+  <!-- Decorative elements -->
+  <div class="cat"></div>
+  <div class="lamp"></div>
+</div>
+
+</body>
+</html>
