@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+    <head>
+        {% if title %}
+        <title>{{ title }}</title>
+        {% else %}
+        <title>Empty Title</title>
+        {% endif%}
+    </head>
+    <body>
+        <h1>Hi, {{ user.username }}!</h1>
+    </body>
+</html>
