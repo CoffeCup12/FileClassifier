@@ -51,7 +51,7 @@ class HANModel(nn.Module):
             processedSentence = self.sentenceLevel.foward(self.wordLevel.forward(embeds))
             processedSentences.append(processedSentence)
 
-        self.documentClassifcation(torch.tensor(processedSentences))
+        return self.documentClassifcation(torch.tensor(processedSentences))
 
         
     def separateSentences(self, document):
