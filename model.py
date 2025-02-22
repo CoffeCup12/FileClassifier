@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F 
 import torch.optim as optim
+import re
     
 class ProcessinglNetwork(nn.Module):
     def __init__(self, inputSize, hiddenSize, numLayers):
@@ -12,9 +13,8 @@ class ProcessinglNetwork(nn.Module):
             nn.Tanh()
         )
     
-    def forward(self, inputSentence):
-        #input sentence is the processed sentence from the word level network
-        output, _ = self.gru(inputSentence)
+    def forward(self, x):
+        output, _ = self.gru(x)
         attentionWeights = F.softmax(self.attention(output), dim=1)
         contextVector = torch.sum(attentionWeights * output, dim=1)
         return contextVector
@@ -32,11 +32,24 @@ class HANModel(nn.Module):
         )
 
 
-    def forward(self, inputText):
-        #Change this later
-        embedding = nn.Embedding(vocab_size = 0, embedding_dim=0)
-        self.wordLevel.forward(embedding)
+    def forward(self, inputDocument):
+
+        sentences = self.separateSentences(inputDocument)
+        processedSentences = []
+
+        for sentence in sentences:
+            words = sentence.split()
+            embedding = nn.Embedding(vocab_size = len(words), embedding_dim = 10)
+            processedSentence = self.sentenceLevel(self.wordLevel.forward(embedding))
+            processedSentences.append(processedSentence)
+            
+        self.documentClassifcation(torch.tensor(processedSentences))
+
         
+    def separateSentences(self, document):
+        sentenceSeparators = "(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s"
+        return re.split(sentenceSeparators, document)
+    
 
 
 
