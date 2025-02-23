@@ -1,5 +1,8 @@
 from pathlib import Path
 import docx2txt
+import re
+import fitz
+import os
 
 class Extractor:
     def __init__(self, path):
@@ -16,14 +19,30 @@ class Extractor:
         folder = Path(self.path)
         return [str(file.resolve()) for file in folder.rglob("*.docx")]
     
-    def docxscontents(self):
-        pathes = self.docxsInFolder()
-        result = []
-        for i in range(len(pathes)):
-            content = docx2txt.process(pathes[i])
-            result.append([pathes[i], content])
+    def docxscontents(self, path):
+        return docx2txt.process(path)
+    
+    def extractTextFromPdf(self, path):
+        doc = fitz.open(path)
+        for page in doc:
+            text += re.sub("\s+", " ", page.get_text()).strip()
+        return text
+    
+    def extractText(self):
+        listOfPDF = self.pdfsInFolder()
+        listOfDocx = self.docxsInFolder()
+        listOfText = []
+        
+        for pdf in listOfPDF:
+            filePath = self.path + "/" + pdf
+            listOfText.append(self.extractTextFromPdf(filePath), filePath)
+        for docx in listOfDocx:
+            filePath = self.path + "/" + docx
+            listOfText.append(self.docxscontents(filePath), filePath)
+        return listOfText
+            
 
-        return result
+
 
 
 

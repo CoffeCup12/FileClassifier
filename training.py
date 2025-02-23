@@ -1,13 +1,14 @@
-import warnings
 import model
 import torch.optim as optim
 import torch
 import re
 import os
 import fitz
+import docx2txt
+import random
 
-def extract_text_from_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
+def extract_text_from_pdf(path):
+    doc = fitz.open(path)
     text = ""
     for page in doc:
         text += re.sub("\s+", " ", page.get_text()).strip()
@@ -33,11 +34,17 @@ def process_pdfs_in_directory(directory):
         listOfFiles = os.listdir(folderPath)
 
         for file in listOfFiles:
+            filePath = folderPath + "/" + file
+            text = ''
+
             if file.endswith(".pdf"):
-                text = extract_text_from_pdf(folderPath + "/" + file)
-                if text != '':
-                    pdfData.append((extract_text_from_pdf(folderPath + "/" + file), label))
-                    generateVocab(pdfData[-1][0])
+                text = extract_text_from_pdf(filePath)
+            elif file.endswith(".docx"):
+                text = docx2txt.process(filePath)
+            
+            if text != '':
+                pdfData.append((text, label))
+                generateVocab(pdfData[-1][0])
                 
         label += 1
 
@@ -45,21 +52,15 @@ def process_pdfs_in_directory(directory):
 
 main_folder = input("Enter the path of the folder: ")  
 documents, numCatgory = process_pdfs_in_directory(main_folder)
-# documents = [('1', 3), ('fghij', 0), ('klmno', 4), ('pqrst', 1), ('uvwxy', 2), ('zabcd', 4), ('efghi', 0), ('jklmn', 2), ('opqrs', 3), ('tuvwx', 1)]
-# numCatgory = 5
 
-# # Replace with your main folder path
-# documents = process_pdfs_in_directory(main_folder)
-# # Print the output to check
-# for text, label in documents:
-#     print(f"Label: {label}, Text Length: {len(text)}")
+random.shuffle(documents)
 HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embeddingDim=20, vocab=vocab, numCategories= numCatgory)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = optim.Adam(HAN.parameters(), lr=0.001)
 
 # # Example usage
-epochs = 5
+epochs = 10
 for i in range(epochs):
     total_loss = 0  # Initialize total loss for the epoch
     for text, label in documents:
