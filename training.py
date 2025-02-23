@@ -1,4 +1,5 @@
 import model
+from pathlib import Path
 import torch.optim as optim
 import torch
 import re
@@ -11,19 +12,20 @@ def extract_text_from_pdf(path):
     doc = fitz.open(path)
     text = ""
     for page in doc:
-        text += re.sub("\s+", " ", page.get_text()).strip()
+        text += re.sub(r"([. ])\1+", r"\1", page.get_text()).strip()
     return text
 
 vocab = {"<PAD>": 0, "<UNK>": 1}
+punctuation = ['.', ',', '!', '?', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '"', "'"]
 
 def generateVocab(text):
     words = text.lower().split()
     for word in words:
-        if word not in vocab and word != '':
+        if word not in vocab and word != '' and len(word) < 10 and word not in punctuation:
             vocab.update({word: len(vocab)})
     
 # Function to traverse the folder and process all PDFs
-def process_pdfs_in_directory(directory):
+def processFilesInDirectory(directory):
     pdfData = []
     label = 0
 
@@ -44,31 +46,34 @@ def process_pdfs_in_directory(directory):
             
             if text != '':
                 pdfData.append((text, label))
-                generateVocab(pdfData[-1][0])
-                
+                generateVocab(pdfData[-1][0])   
         label += 1
 
     return pdfData, label
 
-main_folder = input("Enter the path of the folder: ")  
-documents, numCatgory = process_pdfs_in_directory(main_folder)
+main_folder = input("Enter the folder: ")
+documents, numCatgory = processFilesInDirectory(main_folder)
 
 random.shuffle(documents)
-HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embeddingDim=20, vocab=vocab, numCategories= numCatgory)
+
+train = documents[0:int(0.8*len(documents))]
+test = documents[int(0.8*len(documents)):]
+
+HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=vocab, numCategories= numCatgory)
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = optim.Adam(HAN.parameters(), lr=0.001)
+optimizer = optim.Adam(HAN.parameters(), lr=0.01)
 
 # # Example usage
-epochs = 10
+epochs = 50
 for i in range(epochs):
     total_loss = 0  # Initialize total loss for the epoch
-    for text, label in documents:
+    for text, label in train:
         
+        optimizer.zero_grad()
         label = torch.tensor([label])
 
         output = HAN.forward(text)
-
         loss = criterion(output, label)
         
         # Add the loss of this batch to the total loss
@@ -80,7 +85,10 @@ for i in range(epochs):
     # Print the average loss for this epoch
     avg_loss = total_loss / len(documents)
     print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
-        
+
+for doc, label in test:
+    output = HAN.forward(doc)
+    print(f"Predicted: {torch.argmax(output).item()}, Actual: {label}")    
         
 
 

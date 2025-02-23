@@ -8,9 +8,6 @@ class Extractor:
     def __init__(self, path):
         self.path = path
 
-    def showPath(self):
-        print(f"Path: {self.path}")
-
     def pdfsInFolder(self):
         folder = Path(self.path)
         return [str(file.resolve()) for file in folder.rglob("*.pdf")]
@@ -32,7 +29,7 @@ class Extractor:
         listOfPDF = self.pdfsInFolder()
         listOfDocx = self.docxsInFolder()
         listOfText = []
-        
+
         for pdf in listOfPDF:
             filePath = self.path + "/" + pdf
             listOfText.append(self.extractTextFromPdf(filePath), filePath)
