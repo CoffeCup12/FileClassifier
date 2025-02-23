@@ -44,6 +44,8 @@ class trainer():
         for folders in listOfFolders:
 
             folderPath = self.path + "/" + folders
+            if folders == ".DS_Store":  # Skip .DS_Store file
+                continue
             listOfFiles = os.listdir(folderPath)
             #looks in every file in each subfolder 
             for file in listOfFiles:
@@ -82,7 +84,7 @@ class trainer():
         optimizer = optim.Adam(HAN.parameters(), lr=0.001)
         
         #trainnning loop 
-        epochs = 10
+        epochs = 20
         for i in range(epochs):
             # Initialize total loss for the epoch
             total_loss = 0  

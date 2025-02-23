@@ -12,7 +12,7 @@ class Classifier:
         self.model = torch.load("model.pth", weights_only=False)
         self.model.eval()
 
-        self.targets = [(targetPath + "/" + dir) for dir in os.listdir(targetPath)]
+        self.targets = [(targetPath + "/" + dir) for dir in os.listdir(targetPath) if dir != ".DS_Store"]
     
     def docxscontents(self, path):
         return docx2txt.process(path)
@@ -25,26 +25,30 @@ class Classifier:
         return text
     
     def extractText(self):
-        listOfPDF = [pdf for pdf in os.listdir(self.path) if pdf.endswith(".pdf")]
-        listOfDocx = [pdf for pdf in os.listdir(self.path) if pdf.endswith(".docx")]
+        listOfPDF = [pdf for pdf in os.listdir(self.path) if pdf.endswith(".pdf") and pdf != ".DS_Store"]
+        listOfDocx = [pdf for pdf in os.listdir(self.path) if pdf.endswith(".docx") and pdf != ".DS_Store"]
         listOfText = []
 
         for pdf in listOfPDF:
             listOfText.append((self.extractTextFromPdf(self.path + "/" + pdf), pdf))
         for docx in listOfDocx:
-            listOfText.append((self.docxscontents(self.path + "/" + docx), docx))
+            try:
+                listOfText.append((self.docxscontents(self.path + "/" + docx), docx))
+            except:
+                pass
 
         return listOfText
     
     def classify(self):
-        try:
+        # try:
             documents = self.extractText()
             for document, path in documents:
+                # print(path)
                 result = torch.argmax(self.model.forward(document))
-                shutil.move(self.path + "/" + path, self.targets[result] + "/" + path)
+                shutil.copy(self.path + "/" + path, self.targets[result] + "/" + path)
                 print(result)
             return True
-        except:
+        # except:
             return False
 
         
