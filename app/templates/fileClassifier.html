@@ -17,6 +17,8 @@
                     <form action="{{ url_for("fileClassifier")}}" method="post">
                         <label for="path">Enter your path here: </label>
                         <input class="form-control form-control-lg" type="text" id="path" name="path">
+                        <label for="numSub">Enter the number of subject here: </label>
+                        <input class="form-control form-control-lg" type="text" id="numSub" name="numSub">
                         <button class="btn btn-primary btn-lg" id="submitButton" type="submit" onclick="startProgress()">Submit</button>
                     </form>
                     {% if not issuccess %}

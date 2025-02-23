@@ -14,7 +14,8 @@ def fileClassifier():
     issuccess = True
     if request.method == "POST":
         path = request.form.get("path")
-        issuccess = BACKEND(path)
+        numSub = request.form.get("numSub")
+        issuccess = BACKEND(path, numSub)
         if issuccess:
             return render_template('success.html', title='File Classifier', path = path, issuccess = issuccess)
         else:

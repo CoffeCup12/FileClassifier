@@ -1,8 +1,5 @@
 from pathlib import Path
 import docx2txt
-import re
-import fitz
-import os
 
 class Extractor:
     def __init__(self, path):
@@ -40,6 +37,7 @@ class Extractor:
             
 
 
+        return result
 
 
 
