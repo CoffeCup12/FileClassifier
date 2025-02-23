@@ -8,7 +8,7 @@ import fitz
 import docx2txt
 import random
 
-def extract_text_from_pdf(path):
+def extractTextFromPdf(path):
     doc = fitz.open(path)
     text = ""
     for page in doc:
@@ -40,7 +40,7 @@ def processFilesInDirectory(directory):
             text = ''
 
             if file.endswith(".pdf"):
-                text = extract_text_from_pdf(filePath)
+                text = extractTextFromPdf(filePath)
             elif file.endswith(".docx"):
                 text = docx2txt.process(filePath)
             
@@ -62,10 +62,10 @@ test = documents[int(0.8*len(documents)):]
 HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=vocab, numCategories= numCatgory)
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = optim.Adam(HAN.parameters(), lr=0.01)
+optimizer = optim.Adam(HAN.parameters(), lr=0.001)
 
 # # Example usage
-epochs = 50
+epochs = 10
 for i in range(epochs):
     total_loss = 0  # Initialize total loss for the epoch
     for text, label in train:
@@ -86,9 +86,16 @@ for i in range(epochs):
     avg_loss = total_loss / len(documents)
     print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
 
-for doc, label in test:
-    output = HAN.forward(doc)
-    print(f"Predicted: {torch.argmax(output).item()}, Actual: {label}")    
+torch.save(HAN, "model.pth")  
+
+
+if __name__ == "__main__":
+    numCorrect = 0
+    for doc, label in test:
+        output = HAN.forward(doc)
+        if torch.argmax(output).item() == label:
+            numCorrect += 1
+    print(f"Accuracy: {numCorrect/len(test)*100:.2f}%")  
         
 
 

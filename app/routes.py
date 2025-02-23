@@ -1,6 +1,8 @@
 from app import app
 from flask import Flask, render_template, request
-from .BACKEND import BACKEND
+from app.BACKEND import BACKEND
+from . import Running
+from Running import Classifier
 
 @app.route('/test', methods = ["GET", "POST"])
 def test():
@@ -14,8 +16,8 @@ def fileClassifier():
     issuccess = True
     if request.method == "POST":
         path = request.form.get("path")
-        targetFolder = request.form.get("targetFolder")
-        issuccess = BACKEND(path, targetFolder)
+        targetPath = request.form.get("targetPath")
+        issuccess = Classifier(path, targetPath).classify()
         if issuccess:
             return render_template('success.html', title='File Classifier', path = path, issuccess = issuccess)
         else:
