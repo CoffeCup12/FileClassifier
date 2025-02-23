@@ -9,6 +9,7 @@ import shutil
 class Classifier:
     def __init__(self, path, targetPath):
         self.folder = Path(path)
+        self.path = path
         self.model = torch.load("model.pth", weights_only=False)
         self.model.eval()
         self.targets = [(targetPath + "/" + dir) for dir in os.listdir(targetPath)]
@@ -29,10 +30,10 @@ class Classifier:
 
         for pdf in listOfPDF:
             filePath = self.path + "/" + pdf
-            listOfText.append(self.extractTextFromPdf(filePath), filePath)
+            listOfText.append(self.extractTextFromPdf(filePath), pdf)
         for docx in listOfDocx:
             filePath = self.path + "/" + docx
-            listOfText.append(self.docxscontents(filePath), filePath)
+            listOfText.append((self.docxscontents(filePath), pdf))
         return listOfText
     
     def classify(self):
@@ -40,7 +41,7 @@ class Classifier:
             documents = self.extractText()
             for document, path in documents:
                 result = torch.argmax(self.model.forward(document))
-                shutil.move(path, self.targets[result])
+                shutil.move(path, self.targets[result] + "/" + path)
             return True
         except:
             return False
