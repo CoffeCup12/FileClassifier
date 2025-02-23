@@ -12,7 +12,7 @@ class Classifier:
         self.model = torch.load("model.pth", weights_only=False)
         self.model.eval()
 
-        self.targets = [(targetPath + "\\" + dir) for dir in os.listdir(targetPath)]
+        self.targets = [(targetPath + "/" + dir) for dir in os.listdir(targetPath)]
     
     def docxscontents(self, path):
         return docx2txt.process(path)
@@ -30,9 +30,9 @@ class Classifier:
         listOfText = []
 
         for pdf in listOfPDF:
-            listOfText.append((self.extractTextFromPdf(self.path + "\\" + pdf), pdf))
+            listOfText.append((self.extractTextFromPdf(self.path + "/" + pdf), pdf))
         for docx in listOfDocx:
-            listOfText.append((self.docxscontents(self.path + "\\" + docx), docx))
+            listOfText.append((self.docxscontents(self.path + "/" + docx), docx))
 
         return listOfText
     
@@ -41,7 +41,7 @@ class Classifier:
             documents = self.extractText()
             for document, path in documents:
                 result = torch.argmax(self.model.forward(document))
-                shutil.move(self.path + "\\" + path, self.targets[result] + "\\" + path)
+                shutil.move(self.path + "/" + path, self.targets[result] + "/" + path)
                 print(result)
             return True
         except:
