@@ -102,7 +102,7 @@ class trainer():
             
             #print the average loss for this epoch
             avg_loss = total_loss / len(documents)
-            #print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
+            print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
 
         #save model
         torch.save(HAN, "model.pth") 
