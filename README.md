@@ -1,5 +1,4 @@
 # FileClassifier
-
 Shaoren Zhu<br/>
 Khush Patel<br/>
 Junxiong Hui<br/>
