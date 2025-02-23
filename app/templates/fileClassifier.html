@@ -17,8 +17,8 @@
                     <form action="{{ url_for("fileClassifier")}}" method="post">
                         <label for="path">Enter your path here: </label>
                         <input class="form-control form-control-lg" type="text" id="path" name="path">
-                        <label for="targetFolder">Enter your target folder here: </label>
-                        <input class="form-control form-control-lg" type="text" id="targetFolder" name="targetFolder">
+                        <label for="targetPath">Enter your target folder here: </label>
+                        <input class="form-control form-control-lg" type="text" id="targetPath" name="targetPath">
                         <button class="btn btn-primary btn-lg" id="submitButton" type="submit" onclick="startProgress()">Submit</button>
                     </form>
                     {% if not issuccess %}

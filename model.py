@@ -48,6 +48,8 @@ class HANModel(nn.Module):
         for sentence in sentences:
             
             wordsToIndex = self.separateWords(sentence)
+            if wordsToIndex == []:
+                wordsToIndex = [0]
             embeds = self.embedding(torch.LongTensor(wordsToIndex)).unsqueeze(0)
 
             processedSentence = self.wordLevel.forward(embeds)
