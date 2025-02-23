@@ -15,6 +15,10 @@
                     <br>
                     <p>Helps you organize your files using HAN</p>
                     <form action="{{ url_for("fileClassifier")}}" method="post">
+                        <label for="targetPath">Enter the path for the training dataSet: </label>
+                        <input class="form-control form-control-lg" type="text" id="trainPath" name="trainPath">
+                        <button class="btn btn-primary btn-lg" id="submitButton" type="submit" onclick="startProgress()">Train</button>
+
                         <label for="path">Enter your path here: </label>
                         <input class="form-control form-control-lg" type="text" id="path" name="path">
                         <label for="targetPath">Enter your target folder here: </label>

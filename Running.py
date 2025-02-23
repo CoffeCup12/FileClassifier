@@ -41,7 +41,7 @@ class Classifier:
             documents = self.extractText()
             for document, path in documents:
                 result = torch.argmax(self.model.forward(document))
-                shutil.copy(self.path + "\\" + path, self.targets[result] + "\\" + path)
+                shutil.move(self.path + "\\" + path, self.targets[result] + "\\" + path)
                 print(result)
             return True
         except:

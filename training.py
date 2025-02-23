@@ -7,88 +7,99 @@ import fitz
 import docx2txt
 import random
 
-def extractTextFromPdf(path):
-    doc = fitz.open(path)
-    text = ""
-    for page in doc:
-        text += re.sub(r"([. ])\1+", r"\1", page.get_text()).strip()
-    return text
+class trainer():
 
-vocab = {"<PAD>": 0, "<UNK>": 1}
-punctuation = ['.', ',', '!', '?', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '"', "'"]
+    def __init__(self, path):
+        self.path = path
+        self.vocab = {"<PAD>": 0, "<UNK>": 1}
+        self.punctuation = ['.', ',', '!', '?', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '"', "'"]
+        self.HAN
 
-def generateVocab(text):
-    words = text.lower().split()
-    for word in words:
-        if word not in vocab and word != '' and len(word) < 10 and word not in punctuation:
-            vocab.update({word: len(vocab)})
+    def extractTextFromPdf(self, path):
+        doc = fitz.open(path)
+        text = ""
+        for page in doc:
+            text += re.sub(r"([. ])\1+", r"\1", page.get_text()).strip()
+        return text
+
+    def generateVocab(self, text):
+        words = text.lower().split()
+        for word in words:
+            if word not in self.vocab and word != '' and len(word) < 10 and word not in self.punctuation:
+                self.vocab.update({word: len(self.vocab)})
     
-# Function to traverse the folder and process all PDFs
-def processFilesInDirectory(directory):
-    pdfData = []
-    label = 0
+    # Function to traverse the folder and process all PDFs
+    def processFilesInDirectory(self):
+        pdfData = []
+        label = 0
 
-    listOfFolders = os.listdir(directory)
-    for folders in listOfFolders:
+        listOfFolders = os.listdir(self.path)
+        for folders in listOfFolders:
 
-        folderPath = directory + "/" + folders
-        listOfFiles = os.listdir(folderPath)
+            folderPath = self.path + "/" + folders
+            listOfFiles = os.listdir(folderPath)
 
-        for file in listOfFiles:
-            filePath = folderPath + "/" + file
-            text = ''
+            for file in listOfFiles:
+                filePath = folderPath + "/" + file
+                text = ''
 
-            if file.endswith(".pdf"):
-                text = extractTextFromPdf(filePath)
-            elif file.endswith(".docx"):
-                text = docx2txt.process(filePath)
+                if file.endswith(".pdf"):
+                    text = self.extractTextFromPdf(filePath)
+                elif file.endswith(".docx"):
+                    text = docx2txt.process(filePath)
+                
+                if text != '':
+                    pdfData.append((text, label))
+                    self.generateVocab(pdfData[-1][0])   
+            label += 1
+
+        return pdfData, label
+    
+    def train(self):
+        documents, numCatgory = self.processFilesInDirectory()
+
+        random.shuffle(documents)
+
+        train = documents[0:int(0.8*len(documents))]
+        test = documents[int(0.8*len(documents)):]
+
+        self.HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=self.vocab, numCategories= numCatgory)
+
+        criterion = torch.nn.CrossEntropyLoss()
+        optimizer = optim.Adam(self.HAN.parameters(), lr=0.001)
+
+        epochs = 10
+        for i in range(epochs):
+            total_loss = 0  # Initialize total loss for the epoch
+            for text, label in train:
+                
+                optimizer.zero_grad()
+                label = torch.tensor([label])
+
+                output = self.HAN.forward(text)
+                loss = criterion(output, label)
+                
+                # Add the loss of this batch to the total loss
+                total_loss += loss.item()
+
+                loss.backward()
+                optimizer.step()
             
-            if text != '':
-                pdfData.append((text, label))
-                generateVocab(pdfData[-1][0])   
-        label += 1
+            # Print the average loss for this epoch
+            avg_loss = total_loss / len(documents)
+            #print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
 
-    return pdfData, label
+            return test, self.HAN
 
-main_folder = input("Enter the folder: ")
-documents, numCatgory = processFilesInDirectory(main_folder)
-
-random.shuffle(documents)
-
-train = documents[0:int(0.8*len(documents))]
-test = documents[int(0.8*len(documents)):]
-
-HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=vocab, numCategories= numCatgory)
-
-criterion = torch.nn.CrossEntropyLoss()
-optimizer = optim.Adam(HAN.parameters(), lr=0.001)
-
-# # Example usage
-epochs = 10
-for i in range(epochs):
-    total_loss = 0  # Initialize total loss for the epoch
-    for text, label in train:
-        
-        optimizer.zero_grad()
-        label = torch.tensor([label])
-
-        output = HAN.forward(text)
-        loss = criterion(output, label)
-        
-        # Add the loss of this batch to the total loss
-        total_loss += loss.item()
-
-        loss.backward()
-        optimizer.step()
-    
-    # Print the average loss for this epoch
-    avg_loss = total_loss / len(documents)
-    print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
-
-torch.save(HAN, "model.pth")  
+    def saveModel(self):    
+        torch.save(self.HAN, "model.pth")  
 
 
 if __name__ == "__main__":
+
+    trainer = trainer(input("Enter testing Path"))
+    test, HAN = trainer.train()
+    
     numCorrect = 0
     for doc, label in test:
         output = HAN.forward(doc)
