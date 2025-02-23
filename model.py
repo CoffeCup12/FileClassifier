@@ -66,6 +66,7 @@ class HANModel(nn.Module):
     def separateWords(self, sentence):
         words = sentence.lower().split()
         return [self.vocab.get(word, self.vocab['<UNK>']) for word in words]  # Handle unknown words
+    
 
     
 
