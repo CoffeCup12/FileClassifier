@@ -30,7 +30,7 @@ class Classifier:
 
         for pdf in listOfPDF:
             filePath = self.path + "/" + pdf
-            listOfText.append(self.extractTextFromPdf(filePath), pdf)
+            listOfText.append((self.extractTextFromPdf(filePath), pdf))
         for docx in listOfDocx:
             filePath = self.path + "/" + docx
             listOfText.append((self.docxscontents(filePath), pdf))
