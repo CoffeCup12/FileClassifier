@@ -13,7 +13,6 @@ class trainer():
         self.path = path
         self.vocab = {"<PAD>": 0, "<UNK>": 1}
         self.punctuation = ['.', ',', '!', '?', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '"', "'"]
-        self.HAN
 
     def extractTextFromPdf(self, path):
         doc = fitz.open(path)
@@ -33,6 +32,7 @@ class trainer():
         pdfData = []
         label = 0
 
+        print(self.path)
         listOfFolders = os.listdir(self.path)
         for folders in listOfFolders:
 
@@ -63,10 +63,10 @@ class trainer():
         train = documents[0:int(0.8*len(documents))]
         test = documents[int(0.8*len(documents)):]
 
-        self.HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=self.vocab, numCategories= numCatgory)
+        HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=self.vocab, numCategories= numCatgory)
 
         criterion = torch.nn.CrossEntropyLoss()
-        optimizer = optim.Adam(self.HAN.parameters(), lr=0.001)
+        optimizer = optim.Adam(HAN.parameters(), lr=0.001)
 
         epochs = 10
         for i in range(epochs):
@@ -76,7 +76,7 @@ class trainer():
                 optimizer.zero_grad()
                 label = torch.tensor([label])
 
-                output = self.HAN.forward(text)
+                output = HAN.forward(text)
                 loss = criterion(output, label)
                 
                 # Add the loss of this batch to the total loss
@@ -89,10 +89,12 @@ class trainer():
             avg_loss = total_loss / len(documents)
             #print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
 
-            return test, self.HAN
+        #save model
+        torch.save(HAN, "model.pth") 
 
-    def saveModel(self):    
-        torch.save(self.HAN, "model.pth")  
+        #return test set and network
+        return test, HAN
+             
 
 
 if __name__ == "__main__":

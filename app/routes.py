@@ -18,9 +18,8 @@ def fileClassifier():
 
         trainPath = request.form.get("trainPath")
         if trainPath != None:
-            trainer = training.trainer("trainPath")
+            trainer = training.trainer(trainPath)
             trainer.train()
-            trainer.saveModel()
         else:
             path = request.form.get("path")
             targetPath = request.form.get("targetPath")
