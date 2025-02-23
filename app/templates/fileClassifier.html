@@ -17,17 +17,18 @@
                     <form action="{{ url_for("fileClassifier")}}" method="post">
                         <label for="path">Enter your path here: </label>
                         <input class="form-control form-control-lg" type="text" id="path" name="path">
-                        <button class="btn btn-primary btn-lg" id="submitButton" type="submit">Submit</button>
+                        <button class="btn btn-primary btn-lg" id="submitButton" type="submit" onclick="startProgress()">Submit</button>
+                    </form>
+                    {% if not issuccess %}
+                    <h3 style ="color:darkred;">Wrong Path!</h3>
+                    {% endif%}
+                    <div class="progress-container">
+                        <div class="progress-bar" id="myProgress"></div>
+                    </div>
                     <br>
                 </div>
             </div>
         </div>
     </div>
-
-    <footer class="footer bg-light">
-        <div class="col-lg-6 h-100 text-center text-lg-start my-auto">
-            <p class="text-muted small mb-4 mb-lg-0">&copy; Your Website 2023. All Rights Reserved.</p>
-        </div>
-    </footer>
 </body>
 {% endblock %}

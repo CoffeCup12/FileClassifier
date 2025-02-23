@@ -1,14 +1,80 @@
-{% extends "base.html"%}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* 进度条容器样式 */
+        .progress-container {
+            width: 300px;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin: 20px;
+            overflow: hidden; /* 隐藏超出部分 */
+        }
 
-{%block body %}
-    {% if title %}
-    <h1>{{ title }}</h1>
-    {% else %}
-    <h1>Empty Title</h1>
-    {% endif%}
-    <p style="background-image: url('static/img/testBackground.jpg');">Helps you organize your files using HAN</p>
-    <form action="{{ url_for("test")}}" method="post">
-        <label for="path">Enter your path here: </label>
-        <input class="form-control form-control-lg" id="path" name="path" type="file" webkitdirectory>
-        <button class="btn btn-primary btn-lg" id="submitButton" type="submit">Submit</button>
-{% endblock %}
+        /* 进度条填充部分 */
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #2196F3; /* 默认蓝色 */
+            transition: 
+                width 0.3s ease-in-out, 
+                background-color 0.3s ease-in-out; /* 平滑过渡效果 */
+        }
+
+        /* 失败状态 */
+        .error {
+            background-color: #f44336 !important; /* 红色覆盖 */
+        }
+    </style>
+</head>
+<body>
+    <!-- 进度条容器 -->
+    <div class="progress-container">
+        <div class="progress-bar" id="myProgress"></div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <button onclick="startProgress()">开始进度</button>
+    <button onclick="simulateError()">模拟失败</button>
+
+    <script>
+        let progress = 0;
+        const progressBar = document.getElementById('myProgress');
+        let intervalId;
+
+        // 开始进度（模拟）
+        function startProgress() {
+            resetProgress();
+            intervalId = setInterval(() => {
+                if (progress < 100) {
+                    progress += 10;
+                    updateProgress(progress);
+                } else {
+                    clearInterval(intervalId);
+                }
+            }, 500);
+        }
+
+        // 更新进度条
+        function updateProgress(value) {
+            progressBar.style.width = value + "%";
+            progressBar.classList.remove('error'); // 移除错误状态
+        }
+
+        // 模拟失败状态
+        function simulateError() {
+            clearInterval(intervalId); // 停止进度
+            progressBar.classList.add('error'); // 切换红色
+        }
+
+        // 重置进度条
+        function resetProgress() {
+            clearInterval(intervalId);
+            progress = 0;
+            progressBar.style.width = "0%";
+            progressBar.classList.remove('error');
+        }
+    </script>
+</body>
+</html>
