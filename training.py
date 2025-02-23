@@ -1,4 +1,3 @@
-import warnings
 import model
 from pathlib import Path
 import torch.optim as optim
@@ -6,9 +5,11 @@ import torch
 import re
 import os
 import fitz
+import docx2txt
+import random
 
-def extract_text_from_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
+def extract_text_from_pdf(path):
+    doc = fitz.open(path)
     text = ""
     for page in doc:
         text += re.sub(r"([. ])\1+", r"\1", page.get_text()).strip()
@@ -35,6 +36,9 @@ def processFilesInDirectory(directory):
         listOfFiles = os.listdir(folderPath)
 
         for file in listOfFiles:
+            filePath = folderPath + "/" + file
+            text = ''
+
             if file.endswith(".pdf"):
                 text = extract_text_from_pdf(filePath)
             elif file.endswith(".docx"):

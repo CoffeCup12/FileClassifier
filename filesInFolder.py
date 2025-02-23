@@ -1,5 +1,7 @@
 from pathlib import Path
 import docx2txt
+import re
+import fitz
 
 class Extractor:
     def __init__(self, path):
@@ -34,13 +36,6 @@ class Extractor:
             filePath = self.path + "/" + docx
             listOfText.append(self.docxscontents(filePath), filePath)
         return listOfText
-            
-
-
-        return result
-
-
-
 
 
 if __name__ == "__main__":
