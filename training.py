@@ -1,5 +1,4 @@
 import model
-from pathlib import Path
 import torch.optim as optim
 import torch
 import re
