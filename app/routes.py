@@ -17,7 +17,7 @@ def fileClassifier():
     if request.method == "POST":
 
         trainPath = request.form.get("trainPath")
-        if trainPath != None:
+        if trainPath != '':
             trainer = training.trainer(trainPath)
             trainer.train()
         else:
