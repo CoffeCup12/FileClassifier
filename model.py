@@ -46,12 +46,9 @@ class HANModel(nn.Module):
         processedSentences = []
 
         for sentence in sentences:
-
+            
             wordsToIndex = self.separateWords(sentence)
             embeds = self.embedding(torch.LongTensor(wordsToIndex)).unsqueeze(0)
-            if embeds.size == 0:
-                print("Shape is 0")
-                break
 
             processedSentence = self.wordLevel.forward(embeds)
             processedSentences.append(processedSentence)
