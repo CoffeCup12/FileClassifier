@@ -13,15 +13,22 @@
                     <h1>Empty Title</h1>
                     {% endif%}
                     <br>
-                    <p>Helps you organize your files using HAN</p>
+                    <h3>Helps you organize your files using HAN</h3>
+                    <h4>User guide:</h4>
+                    <h4>    Set the categories of classification by creating subfolders under the target folder.</h4>
+                    <h4>    Customized version available:</h4>
+                    <h4>        It is recommended that users enter more than 20 files.</h4>
+                    <h4>        Leave the path for the training data set blank if the customized version is not used.</h4>
+                    <br>
                     <form action="{{ url_for("fileClassifier")}}" method="post">
-                        <label for="targetPath">Enter the path for the training dataSet: </label>
+                        <label for="targetPath"><h5>Enter the path to the training data set:</h5></label>
                         <input class="form-control form-control-lg" type="text" id="trainPath" name="trainPath">
                         <button class="btn btn-primary btn-lg" id="submitButton" type="submit" onclick="startProgress()">Train</button>
                         <br>
-                        <label for="path">Enter your path here: </label>
+                        <br>
+                        <label for="path"><h5>Enter the path to your source folder:</h5></label>
                         <input class="form-control form-control-lg" type="text" id="path" name="path">
-                        <label for="targetPath">Enter your target folder here: </label>
+                        <label for="targetPath"><h5>Enter the path to your target folder:</h5></label>
                         <input class="form-control form-control-lg" type="text" id="targetPath" name="targetPath">
                         <button class="btn btn-primary btn-lg" id="submitButton" type="submit" onclick="startProgress()">Submit</button>
                     </form>
