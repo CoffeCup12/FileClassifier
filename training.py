@@ -1,101 +1,72 @@
 import warnings
-from pypdf import PdfReader
 import model
 import torch.optim as optim
 import torch
 import re
 import os
+import fitz
 
 def extract_text_from_pdf(pdf_path):
-    # Suppress specific warnings related to PyPDF
-    warnings.filterwarnings("ignore", message="Ignoring wrong pointing object")
-
+    doc = fitz.open(pdf_path)
     text = ""
-    with open(pdf_path, 'rb') as file:
-        reader = PdfReader(file)
-        for page in reader.pages:
-            page_text = page.extract_text() or ""
-            
-            # Split the page text into lines
-            lines = page_text.split('\n')
-            
-            # Process each line
-            for line in lines:
-                # Skip empty lines
-                if not line.strip():
-                    continue
-                
-                # Split the line into words and filter out words with length 10 or more
-                words = line.split()
-                filtered_words = [word for word in words if len(word) < 10]
-                
-                # Reconstruct the line with filtered words and add it to the text
-                if filtered_words:
-                    text += " ".join(filtered_words) + " "
-    
+    for page in doc:
+        text += re.sub("\s+", " ", page.get_text()).strip()
     return text
-    
+
 vocab = {"<PAD>": 0, "<UNK>": 1}
+
 def generateVocab(text):
     words = text.lower().split()
-    i = 2
     for word in words:
-        if word not in vocab:
-            vocab[word] = i
-            i +=1 
+        if word not in vocab and word != '':
+            vocab.update({word: len(vocab)})
     
 # Function to traverse the folder and process all PDFs
 def process_pdfs_in_directory(directory):
-    pdf_data = []
+    pdfData = []
+    label = 0
 
-    for root, dirs, files in os.walk(directory):
-        # Skip non-PDF files
-        pdf_files = [f for f in files if f.endswith('.pdf')]
+    listOfFolders = os.listdir(directory)
+    for folders in listOfFolders:
 
-        # Determine the label based on the folder name (assuming two categories)
-        if 'Labs' in root:
-            label = 0
-        elif 'APPs' in root:
-            label = 1
-        else:
-            continue  # Skip if the folder doesn't match either category
+        folderPath = directory + "/" + folders
+        listOfFiles = os.listdir(folderPath)
 
-        for file in pdf_files:
-            pdf_path = os.path.join(root, file)
-            text = extract_text_from_pdf(pdf_path)
-            pdf_data.append((text, label))
+        for file in listOfFiles:
+            if file.endswith(".pdf"):
+                text = extract_text_from_pdf(folderPath + "/" + file)
+                if text != '':
+                    pdfData.append((extract_text_from_pdf(folderPath + "/" + file), label))
+                    generateVocab(pdfData[-1][0])
+                
+        label += 1
 
-    return pdf_data
+    return pdfData, label
 
-main_folder = '/Users/khushpatel/FEH/Testing'  # Replace with your main folder path
-documents = process_pdfs_in_directory(main_folder)
-# Print the output to check
-for text, label in documents:
-    print(f"Label: {label}, Text Length: {len(text)}")
+main_folder = input("Enter the path of the folder: ")  
+documents, numCatgory = process_pdfs_in_directory(main_folder)
+# documents = [('1', 3), ('fghij', 0), ('klmno', 4), ('pqrst', 1), ('uvwxy', 2), ('zabcd', 4), ('efghi', 0), ('jklmn', 2), ('opqrs', 3), ('tuvwx', 1)]
+# numCatgory = 5
 
-HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embeddingDim=20, vocab=vocab, numCategories=2)
+# # Replace with your main folder path
+# documents = process_pdfs_in_directory(main_folder)
+# # Print the output to check
+# for text, label in documents:
+#     print(f"Label: {label}, Text Length: {len(text)}")
+HAN = model.HANModel(wordHiddenSize=32, sentenceHiddenSize=64, numLayers=1, embeddingDim=20, vocab=vocab, numCategories= numCatgory)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = optim.Adam(HAN.parameters(), lr=0.001)
 
-# Example usage
+# # Example usage
 epochs = 5
 for i in range(epochs):
     total_loss = 0  # Initialize total loss for the epoch
     for text, label in documents:
-        # Tokenize the text into word indices using the vocab
-        tokenized_text = [vocab[word] for word in text.split() if word in vocab]  # Replace with actual tokenization logic
-        
-        # Ensure the tokenized text is not empty
-        if len(tokenized_text) == 0:
-            continue  # Skip empty texts
-
-        # Convert tokenized text to tensor
-        text_tensor = torch.tensor(tokenized_text).unsqueeze(0)  # Unsqueeze to add batch dimension
         
         label = torch.tensor([label])
 
-        output = HAN.forward(text_tensor)
+        output = HAN.forward(text)
 
         loss = criterion(output, label)
         
