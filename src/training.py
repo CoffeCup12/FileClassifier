@@ -1,4 +1,4 @@
-import model
+from . import model
 import torch.optim as optim
 import torch
 import re

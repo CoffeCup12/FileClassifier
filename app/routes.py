@@ -1,8 +1,8 @@
 from app import app
 from flask import Flask, render_template, request
 
-import Running
-import training
+from src import Running
+from src import training
 
 @app.route('/test', methods = ["GET", "POST"])
 def test():

@@ -1,0 +1,23 @@
+# Variables
+PYTHON = python
+SCRIPT = main.py
+
+# Default target: Run both Makefile and main script
+all: setup run
+
+# Install dependencies
+setup:
+	$(PYTHON) python -m venv venv
+	$(PYTHON) venv/bin/pip install -r requirements.txt
+
+
+# Run the script
+run:
+	$(PYTHON) $(SCRIPT)
+
+# Clean up cache files
+clean:
+	rm -rf __pycache__ *.pyc *.pyo
+
+# Run everything from scratch
+rerun: clean all

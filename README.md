@@ -4,7 +4,7 @@ Khush Patel<br/>
 Junxiong Hui<br/>
 
 # requirement 
-pip install torchc<br/>
+pip install torch<br/>
 pip install flask<br/>
 pip install fitz<br/>
 pip install pymupdf<br/>

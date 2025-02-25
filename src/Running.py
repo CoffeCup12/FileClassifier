@@ -1,4 +1,3 @@
-from pathlib import Path
 import docx2txt
 import re
 import fitz
