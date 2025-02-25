@@ -1,23 +1,35 @@
-# Variables
-PYTHON = python
-SCRIPT = main.py
+# Detect OS
+OS := $(shell uname 2>/dev/null || echo Windows)
 
-# Default target: Run both Makefile and main script
+# Default target: Run setup and script
 all: setup run
 
-# Install dependencies
+# Install dependencies and create virtual environment
 setup:
-	$(PYTHON) python -m venv venv
-	$(PYTHON) venv/bin/pip install -r requirements.txt
+ifeq ($(OS), Windows)
+	python -m venv venv
+	venv\Scripts\pip.exe install -r requirements.txt
+else
+	python -m venv venv
+	venv/bin/pip install -r requirements.txt
+endif
 
-
-# Run the script
+# Run the script using virtual environment
 run:
-	$(PYTHON) $(SCRIPT)
+ifeq ($(OS), Windows)
+	venv\Scripts\python.exe main.py
+else
+	venv/bin/python main.py
+endif
 
-# Clean up cache files
+# Clean up cache files and remove venv
 clean:
+ifeq ($(OS), Windows)
+	rmdir /s /q venv
+else
+	rm -rf venv
+endif
 	rm -rf __pycache__ *.pyc *.pyo
 
-# Run everything from scratch
+# Reinstall everything and run
 rerun: clean all
