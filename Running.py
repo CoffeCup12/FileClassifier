@@ -39,15 +39,15 @@ class Classifier:
         return listOfText
     
     def classify(self):
-        # try:
+        try:
             documents = self.extractText()
             for document, path in documents:
                 # print(path)
                 result = torch.argmax(self.model.forward(document))
-                shutil.copy(self.path + "/" + path, self.targets[result] + "/" + path)
+                shutil.move(self.path + "/" + path, self.targets[result] + "/" + path)
                 print(result)
             return True
-        # except:
+        except:
             return False
 
         

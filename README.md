@@ -3,21 +3,18 @@ Shaoren Zhu<br/>
 Khush Patel<br/>
 Junxiong Hui<br/>
 
-# requirement 
-pip install torch<br/>
-pip install flask<br/>
-pip install fitz<br/>
-pip install pymupdf<br/>
-pip install docx2txt<br/>
-
 # How to use
 git clone https://github.com/CoffeCup12/FileClassifier.git<br/>
-type in terminal <br/>
-flask run<br/>
+type in terminal: make all <br/>
 
 # User guide
-Set the categories of classification by creating subfolders under the target folder.<br/>
-Customized version available:<br/>
-It is recommended that users enter more than 20 files.<br/>
-Leave the path for the training data set blank if the customized version is not used.<br/>
+# trainning 
+Create a folder that contains subfolder of categories you want the machine to sort<br />
+The trainning folder should not have anything other than subfolders<br />
+Put in some files for each categorie as trainning sample(5-20 each categorie recommanded)<br /> 
+Pass in path to the main folder as trainning path <br /> 
+# using 
+Target folder should follow the same structure as the trainning folder<br/>
+Source folder should not contain any folder, the machine won't read them if you have them<br />
+
 
