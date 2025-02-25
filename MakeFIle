@@ -5,6 +5,9 @@ OS := $(shell uname 2>/dev/null || echo Windows)
 all: setup run
 
 # Install dependencies and create virtual environment
+virtual:
+	python -m venv venv
+
 setup:
 ifeq ($(OS), Windows)
 	python -m venv venv
