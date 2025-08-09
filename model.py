@@ -1,98 +1,80 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F 
-import re
-#This definces the word level and sentence level nerual netword of an HAN 
-#This part of the network includes an encoder(GRU) and an attension layer     
-class ProcessingNetwork(nn.Module):
-    def __init__(self, inputSize, hiddenSize, numLayers):
-        super(ProcessingNetwork, self).__init__()
+import nltk
+from pathlib import Path
+import os
+import spacy
+import numpy as np
 
-        #instance vairable 
-        self.hiddenSize = hiddenSize
-        self.numLayers = numLayers
+try:
+    nltk.data.find("tokenizers/punkt_tab")
+except LookupError:
+    VENV_DIR = Path(".venv")
+    NLTK_DATA_DIR = VENV_DIR / "nltk_data"
+    os.environ["NLTK_DATA"] = str(NLTK_DATA_DIR)
+    nltk.data.path.append(str(NLTK_DATA_DIR))
+    nltk.download("punkt_tab", download_dir = str(NLTK_DATA_DIR))
 
-        #encoder 
-        self.gru = nn.GRU(inputSize, hiddenSize, numLayers, batch_first=True, bidirectional=True)
+from nltk.tokenize import sent_tokenize
 
-        #attension layer 
-        self.attention = nn.Sequential(
-            nn.Linear(hiddenSize*2, 1),
-            nn.Tanh()
+class Processing_network(nn.Module):
+    """The Processing network for word and sentence level"""
+
+    def __init__(self, input_size, hidden_size):
+        super().__init__()
+        self.encoder = nn.GRU(input_size=input_size, hidden_size=hidden_size, bidirectional=True)
+        self.mlp = nn.Sequential(
+            nn.Linear(2*hidden_size, 2*hidden_size),
+            nn.Tanh(),
         )
+        self.context_vector = torch.randn(1, 2*hidden_size)
     
     def forward(self, x):
-        #forward encoder pass 
-        output, _ = self.gru(x)
-        #attension to get importance 
-        attentionWeights = F.softmax(self.attention(output), dim=1)
-        #output
-        contextVector = torch.sum(attentionWeights * output, dim=1)
-        return contextVector
+        """returns a vector of dim (1,hidden_size) that represents the word/sentence"""
+        x,h = self.encoder(x)
+        x = self.mlp(x)
+        
+        #softmax with context vector
+        length = h.size()
+        x = x * self.context_vector.repeat(length[0], 1)
+        x = torch.sum(x, dim=1)
+        x = F.softmax(x, dim=0)
+        
+        #weighted sum
+        x = x.repeat(length[1],1).t() * h
+        x = torch.sum(x, dim=0)
+        return x     
 
-#This class models the HAN modoled based on a word level network, a sentence level network and a final
-#evaluation network 
-class HANModel(nn.Module):
-    
-    def __init__(self, wordHiddenSize, sentenceHiddenSize, numLayers, vocab, embeddingDim, numCategories):
-        super(HANModel, self).__init__()
-        #instance variabels, embedder and vocab dictionary 
-        self.embeddingDim = embeddingDim
-        self.vocab = vocab
 
-        #word and sentence level new work 
-        self.wordLevel = ProcessingNetwork(embeddingDim, wordHiddenSize, numLayers)
-        self.sentenceLevel = ProcessingNetwork(2 * wordHiddenSize, sentenceHiddenSize, numLayers)
-
-        #embedding level for the work level network that translate word to vectors 
-        self.embedding = nn.Embedding(len(vocab), embeddingDim)
-
-        #final evaluation network 
-        self.documentClassifcation = nn.Sequential(
-            nn.Linear(2 * self.sentenceLevel.hiddenSize, numCategories),
-            nn.Softmax(dim=1)
+class Doc_network(nn.Module):
+    """The HAN that does the classification """
+    def __init__(self, num_classes):
+        super().__init__()
+        self.word_network = Processing_network(300,50)
+        self.sentence_network = Processing_network(50,50)
+        self.classifcation = nn.Sequential(
+            nn.Linear(50,num_classes),
+            nn.Softmax(dim=0)
         )
+        self.tokenizer = spacy.load("en_core_web_md")
 
-
-    def forward(self, inputDocument):
+    def forward(self,x):
+        """retrun a (1,num_classes) vector that represents the probability of the document's belonging """
+        sentences = sent_tokenize(x) #sentence from doc
         
-        #separate document into a list of sentencs 
-        sentences = self.separateSentences(inputDocument)
-        processedSentences = []
-
+        #get sentences representations for all sentences in docs
+        sentences_rep = []
         for sentence in sentences:
-            #map each word in the sentence to a unique integer representation 
-            wordsToIndex = self.separateWords(sentence)
-            #for edge cases, if sentence is empty make it <PAD>
-            if wordsToIndex == []:
-                wordsToIndex = [0]
-            #embedding 
-            embeds = self.embedding(torch.LongTensor(wordsToIndex)).unsqueeze(0)
-            #process the word rep vector to the word level network to get the processed sentence 
-            processedSentence = self.wordLevel.forward(embeds)
-            processedSentences.append(processedSentence)
-
-        #pass the sentences to the sentence level network 
-        sentenceTensor = torch.cat(processedSentences, dim=0).unsqueeze(0)
-        documentVector = self.sentenceLevel.forward(sentenceTensor)
-
-        #pass the document vector the classifcation layer
-        return self.documentClassifcation(documentVector)
-
+            tokens = self.tokenizer(sentence)
+            embeddings = torch.tensor(np.array([token.vector for token in tokens]))
+            sentences_rep.append(self.word_network(embeddings))
+        sentences_rep = torch.stack(sentences_rep)
         
-    def separateSentences(self, document):
-        #separate document into sentences 
-        sentenceSeparators = "(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s"
-        return re.split(sentenceSeparators, document)
-    
-    def separateWords(self, sentence):
-        #get int rep of words in a sentence 
-        words = sentence.lower().split()
-        return [self.vocab.get(word, self.vocab['<UNK>']) for word in words]  # Handle unknown words
-    
+        #doc representations from sentence representations
+        doc_rep = self.sentence_network(sentences_rep)
 
-    
+        #classification
+        final = self.classifcation(doc_rep)
+        return final
 
-
-
-    
