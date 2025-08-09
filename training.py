@@ -2,7 +2,7 @@ from model import Doc_network
 import torch 
 from torch.tuils.data import Dataset, DataLoader 
 import os
-from fileReader import Reader 
+from file_reader import Reader 
 
 class File_Dataset(Dataset):
     def __init__(self, root_dir):
