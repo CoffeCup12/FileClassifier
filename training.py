@@ -1,132 +1,70 @@
-import model
-import torch.optim as optim
-import torch
-import re
+from model import Doc_network
+import torch 
+from torch.tuils.data import Dataset, DataLoader 
 import os
-import fitz
-import docx2txt
-import random
+from fileReader import Reader 
 
-#the class models the trainning loop of the HAN
-class trainer():
+class File_Dataset(Dataset):
+    def __init__(self, root_dir):
+        self.sub_folders = os.listdir(root_dir)
+        self.seen_folder = 0
+        self.current_folder = os.path.join(root_dir, self.sub_folders[self.seen_folders])
+        self.root_dir = root_dir
+        self.reader = reader()
 
-    def __init__(self, path):
-        #path to the folder that contains subfolders with organized files in each subfolder 
-        self.path = path
-        #instance varibles 
-        self.vocab = {"<PAD>": 0, "<UNK>": 1}
-        self.punctuation = ['.', ',', '!', '?', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '"', "'"]
-
-    def extractTextFromPdf(self, path):
-        #read text from a pdf 
-        doc = fitz.open(path)
-        text = ""
-        for page in doc:
-            #get rid of repeating space and .s
-            text += re.sub(r"([. ])\1+", r"\1", page.get_text()).strip()
-        return text
-
-    def generateVocab(self, text):
-        #split the text of the entire pdf to words 
-        words = text.lower().split()
-        #create a mapping:str -> int to that word 
-        for word in words:
-            if word not in self.vocab and word != '' and len(word) < 10 and word not in self.punctuation:
-                self.vocab.update({word: len(self.vocab)})
+    def __len__(self):
+        num = 0
+        for folder in self.sub_folders:
+            num += len(os.listdir(folder))
+        return num
     
-    def processFilesInDirectory(self):
-        #create list of text, label pairs 
-        pdfData = []
-        label = 0
+    def __getitem__(self, idx):
+        files = os.listdir(self.current_folder) 
+        index = idx
 
-        #looks in every subfolder of the folder 
-        listOfFolders = os.listdir(self.path)
-        for folders in listOfFolders:
-
-            folderPath = self.path + "/" + folders
-            if folders == ".DS_Store":  # Skip .DS_Store file
-                continue
-            listOfFiles = os.listdir(folderPath)
-            #looks in every file in each subfolder 
-            for file in listOfFiles:
-                filePath = folderPath + "/" + file
-                text = ''
-                #generate text
-                if file.endswith(".pdf"):
-                    text = self.extractTextFromPdf(filePath)
-                elif file.endswith(".docx"):
-                    text = docx2txt.process(filePath)
-                #append text, label pair 
-                if text != '':
-                    pdfData.append((text, label))
-                    self.generateVocab(pdfData[-1][0])   
-            #update lable 
-            label += 1
-
-        return pdfData, label
-    
-    def train(self):
-        #get the text label pair and the number of category to sotry 
-        documents, numCategory = self.processFilesInDirectory()
-
-        #shuffle the list
-        random.shuffle(documents)
-
-        #separate train and tes dataset 
-        train = documents[0:int(0.8*len(documents))]
-        test = documents[int(0.8*len(documents)):]
-
-        #create model 
-        HAN = model.HANModel(wordHiddenSize=64, sentenceHiddenSize=128, numLayers=2, embeddingDim=300, vocab=self.vocab, numCategories= numCategory)
-
-        #loss function and optimizer 
-        criterion = torch.nn.CrossEntropyLoss()
-        optimizer = optim.Adam(HAN.parameters(), lr=0.001)
-        
-        #trainnning loop 
-        epochs = 20
-        for i in range(epochs):
-            # Initialize total loss for the epoch
-            total_loss = 0  
-            for text, label in train:
-                
-                optimizer.zero_grad()
-                label = torch.tensor([label])
-                #caclulate loss 
-                output = HAN.forward(text)
-                loss = criterion(output, label)
-                
-                #add the loss of this batch to the total loss
-                total_loss += loss.item()
-                #backpropgation 
-                loss.backward()
-                optimizer.step()
+        for i in range(0, self.seen_folder):
+            index -= len(os.listdir(os.path.join(self.root_dir, self.sub_folders[i])))
             
-            #print the average loss for this epoch
-            avg_loss = total_loss / len(documents)
-            print(f"Epoch {i+1}/{epochs}, Average Loss: {avg_loss:.4f}")
+        if index == len(files):
+            self.seen_folder++
+            self.current_folder = os.path.join(self.root_dir, self.sub_folders[self.seen_folders])
+            index = 0
 
-        #save model
-        torch.save(HAN, "model.pth") 
+        target_file_path = os.path.join(self.current_folder, files[index])
+        text = self.reader.read(target_file_path)
 
-        #return test set and network
-        return test, HAN
-             
+        return text, self.seen_folder
 
 
-if __name__ == "__main__":
-    #for testing purpose 
-    trainer = trainer(input("Enter testing Path"))
-    test, HAN = trainer.train()
+class Trainer():
+    def __init__(self, root_dir):
+        dataset = File_Dataset(root_dir)
+        self.loader = Dataloader(dataset, batch_size= 1, shuffle = True)
+        model = Doc_network(len(os.listdir(root_dir)))
+        self.model = model.to(torch.device("cuda" if torch.cuda_is_available() else "cpu"))
+
+    def train(self, epoch):
+        loss_fn = torch.nn.NLLLoss()
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=0.001, momentum = 0,9)
+
+        for i in range(epoch):
+            running_loss = 0.0
+            count = 0
+            for text, label in self.loader:
+                optimizer.zero_grad()
+                
+                res = torch.argmax(self.model(text))
+                
+                loss = loss_fn(res, label)
+                loss.backward()
+                
+                optimizer.step()
+
+                running_loss += loss.item()
+                count++
+
+            print(running_loss/count)
     
-    #output accurary from testing data set 
-    numCorrect = 0
-    for doc, label in test:
-        output = HAN.forward(doc)
-        if torch.argmax(output).item() == label:
-            numCorrect += 1
-    print(f"Accuracy: {numCorrect/len(test)*100:.2f}%")  
+                
+
         
-
-
-
