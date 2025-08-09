@@ -64,6 +64,8 @@ class Trainer():
                 count++
 
             print(running_loss/count)
+
+        torch.save(self.model.state_dict(), "model.pth")
     
                 
 
