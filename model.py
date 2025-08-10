@@ -32,17 +32,17 @@ class Processing_network(nn.Module):
     
     def forward(self, x):
         """returns a vector of dim (1,hidden_size) that represents the word/sentence"""
-        x,h = self.encoder(x)
+        x = self.encoder(x)[0]
+        h = x.clone().detach()
         x = self.mlp(x)
         
         #softmax with context vector
-        length = h.size()
-        x = x * self.context_vector.repeat(length[0], 1)
-        x = torch.sum(x, dim=1)
+        x = x * self.context_vector.repeat(x.size()[0], 1)
+        x = torch.sum(x, dim=1)                                          
         x = F.softmax(x, dim=0)
         
         #weighted sum
-        x = x.repeat(length[1],1).t() * h
+        x = x.repeat(h.size()[1],1).t() * h
         x = torch.sum(x, dim=0)
         return x     
 
@@ -52,9 +52,9 @@ class Doc_network(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         self.word_network = Processing_network(300,50)
-        self.sentence_network = Processing_network(50,50)
+        self.sentence_network = Processing_network(100,50)
         self.classifcation = nn.Sequential(
-            nn.Linear(50,num_classes),
+            nn.Linear(100,num_classes),
             nn.Softmax(dim=0)
         )
         self.tokenizer = spacy.load("en_core_web_md")
@@ -69,6 +69,7 @@ class Doc_network(nn.Module):
             tokens = self.tokenizer(sentence)
             embeddings = torch.tensor(np.array([token.vector for token in tokens]))
             sentences_rep.append(self.word_network(embeddings))
+        
         sentences_rep = torch.stack(sentences_rep)
         
         #doc representations from sentence representations
@@ -76,5 +77,12 @@ class Doc_network(nn.Module):
 
         #classification
         final = self.classifcation(doc_rep)
+
         return final
+
+if __name__ == "__main__":
+    model = Doc_network(2)
+    text = "unclassified"
+    print(model(text))
+    
 
