@@ -38,7 +38,7 @@ class File_Dataset(Dataset):
 class Trainer():
     def __init__(self, root_dir):
         dataset = File_Dataset(root_dir)
-        self.loader = DataLoader(dataset, batch_size=1, shuffle = True)
+        self.loader = DataLoader(dataset, batch_size=32, shuffle = True)
         model = Doc_network(len(os.listdir(root_dir))+1)
         self.model = model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
@@ -52,9 +52,9 @@ class Trainer():
             for text, label in self.loader:
                 optimizer.zero_grad()
 
-                output = self.model(text[0])
-                loss = loss_fn(output.unsqueeze(0), label)
-                print("worked")
+                output = self.model(text)
+
+                loss = loss_fn(output, label)
                 loss.backward()
                 
                 optimizer.step()
