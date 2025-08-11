@@ -29,7 +29,7 @@ class Processing_network(nn.Module):
             nn.Linear(2*hidden_size, 2*hidden_size),
             nn.Tanh(),
         )
-        self.context_vector = torch.randn(1, 2*hidden_size)
+        self.context_vector = nn.Parameter(torch.randn(1, 2*hidden_size), requires_grad=True)
     
     def forward(self, x):
         """returns a vector of dim (1,hidden_size) that represents the word/sentence"""
