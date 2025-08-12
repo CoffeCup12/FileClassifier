@@ -24,8 +24,8 @@ def classify_and_move(target_dir, working_dir):
         if res < len(target_folders):
             shutil.move(path, os.path.join(target_dir, target_folders[res]))
 
-def train_model(root_dir, epoch):
-    trainer = Trainer(root_dir)
+def train_model(root_dir, epoch, batch_size):
+    trainer = Trainer(root_dir, batch_size) 
     trainer.train(epoch)
 
 
@@ -34,7 +34,8 @@ if __name__ == "__main__":
     if is_trainning != "n":
         root_dir = input("input sorted directory: ")
         epoch = input("input num epoch: ")
-        train_model(root_dir, int(epoch))
+        batch_size = input("input batch_size: ")
+        train_model(root_dir, int(epoch), int(batch_size))
     else:
         target_dir = input("input your target directory: ")
         working_dir = input("input your source directory: ")

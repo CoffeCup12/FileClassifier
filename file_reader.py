@@ -1,4 +1,4 @@
-from pypdf import PdfReader 
+import fitz
 from docx import Document
 
 class Reader:
@@ -8,10 +8,11 @@ class Reader:
     def read_pdf(self,dir):
         text = "unclassified"
         try:
-            reader = PdfReader(dir)
+            doc = fitz.open(dir)
             text = ""
-            for page in reader.pages:
-                text += page.extract_text()
+            for page in doc:
+                text += page.get_text()
+            doc.close()
         except:
             print(f"Warning: can't open file {dir}")
             
@@ -36,11 +37,11 @@ class Reader:
         elif ending == "docx":
             text = self.read_docx(dir)
         else:
-            print(f"Warning: unsupported file type {dir}")
-
+            #print(f"Warning: unsupported file type {dir}")
+            pass
         if text == "":
             text = "unclassified"
-            print(f"Warning: error reading file {dir}")
+            #print(f"Warning: error reading file {dir}")
 
         return text
 
