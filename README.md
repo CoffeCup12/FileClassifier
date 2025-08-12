@@ -6,7 +6,7 @@ Junxiong Hui<br/>
 # How to use
 git clone https://github.com/CoffeCup12/FileClassifier.git<br/>
 type in terminal: make all <br/>
-navigate to http://127.0.0.1:5000 on your browser 
+type python main.py to use  
 
 # User guide
 # trainning 

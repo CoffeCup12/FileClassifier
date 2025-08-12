@@ -7,19 +7,19 @@ all: setup run
 # Install dependencies and create virtual environment
 setup:
 ifeq ($(OS), Windows)
-	python -m venv venv
+	python -m venv .venv
 	venv\Scripts\pip.exe install -r requirements.txt
 else
-	python -m venv venv
+	python -m venv .venv
 	venv/bin/pip install -r requirements.txt
 endif
 
 # Run the script using virtual environment
 run:
 ifeq ($(OS), Windows)
-	venv\Scripts\python.exe run.py
+	venv\Scripts\python.exe main.py
 else
-	venv/bin/python run.py
+	venv/bin/python main.py
 endif
 
 # Clean up cache files and remove venv

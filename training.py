@@ -69,6 +69,7 @@ class Trainer():
                 
                 with torch.no_grad():
                     preds = torch.argmax(torch.exp(output), dim=1)
+                    print(preds)
                     correct += (preds == label).sum().item()
 
             
