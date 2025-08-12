@@ -5,8 +5,8 @@ Junxiong Hui<br/>
 
 # How to use
 git clone https://github.com/CoffeCup12/FileClassifier.git<br/>
-type in terminal: make all <br/>
-type python main.py to use  
+To Install: type in terminal: make setup <br/>
+To run: type  in terminal: make run
 
 # User guide
 # trainning 
